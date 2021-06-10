@@ -1,0 +1,119 @@
+﻿
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Roomandhallcheckout</title>
+    <link href="https://cdn.datatables.net/1.10.15/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/responsive/2.1.1/css/responsive.bootstrap.min.css" rel="stylesheet" />
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" />    
+</head>
+<body>
+    <div>
+        <div class="col-8">
+            <h2>Room Occupied by Customers</h2>
+            <table id="GetDetails" class="table table-striped table-bordered nowrap">
+                <thead>
+                    <tr>
+                        <th>Customer Name</th>
+                        <th>Customer Mobile</th>
+                        <th>Room or Hall Occupied</th>
+                        <th>Room or Hall No.</th>
+                        <th>Amount Paid(Rs.)</th>
+                        <th>Check in Date and Time</th>
+                        <th>Checkout</th>
+                    </tr>
+                </thead>
+            </table>
+        </div>
+    </div>
+
+    @section Scripts{
+        <script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+        <script src="https://cdn.datatables.net/1.10.15/js/dataTables.bootstrap4.min.js "></script>
+        @*<script src="//cdn.datatables.net/1.10.9/js/jquery.dataTables.min.js"></script>*@
+        <script>
+            $(document).ready(function () {
+                debugger;
+                var table =  $("#GetDetails").DataTable( {
+                "ajax": {
+                    "url": '@Url.Action("GetDetails", "Employee")',
+                    "type": 'get',
+                    "datatype":'json',
+                    },
+                    
+                "serverSide": false,
+                    "columns": [
+                        { "data": "customername", "Searchable": true },
+                        { "data": "customermobilenum", "Searchable": true },
+                        { "data": "roomandhalltype", "Searchable": true },
+                        { "data": "Availableroomandhall", "Searchable": true },
+                        { "data": "Finalamount", "Searchable": true },
+                        { "data": "checkindate", "Searchable": true },                   
+                        {
+                            "render": function (data, type, full, meta) { return '<a class="btn btn-danger" href="@Url.Action("Checkoutroom", "Employee")?Availableroomandhall=' + full.Availableroomandhall + '&customername=' + full.customername + '&customermobilenum=' + full.customermobilenum + '">Check Out</a>'; }
+                        },
+                ],
+                "columnDefs": [
+                    { "targets": 0, "class": "text-center" },
+                    { "targets": 1, "class": "text-center" },
+                    { "targets": 2, "class": "text-center" },
+                    { "targets": 3, "class": "text-center" },
+                    { "targets": 4, "class": "text-center" },
+                    { "targets": 5, "class": "text-center" },
+                    { "targets": 6, "class": "text-center" },
+                ],
+                });
+                //$('#GetDetails tbody').on('click', 'tr', function () {
+                //    if ($(this).hasClass('selected')) {
+                //    $(this).removeClass('selected');
+                //}
+                //else {
+                //    table.$('tr.selected').removeClass('selected');
+                //    $(this).addClass('selected');
+                //}
+                //    var rowData = table.rows('.selected').data();
+                //    var customerdetailstocheckout = {
+                //        Availableroomandhall: rowData[0]['Availableroomandhall'],
+                //        customermobilenum: rowData[0]['customermobilenum'],
+                //        customername: rowData[0]['customername'],
+                //    };
+
+                //    //var Availableroomandhall = rowData[0]['Availableroomandhall'];
+                //    //var customermobilenum = rowData[0]['customermobilenum'];
+
+                //    if (confirm("Are you sure you want to Checkout ?")) {                        
+                //        //alert("Test");
+
+                //        $.ajax({
+                //            url: "/Employee/Checkoutroom",
+                //            data: JSON.stringify(customerdetailstocheckout),
+                //            type: "POST",
+                //            contentType: "application/json;charset=utf-8",
+                //            dataType: "json",
+                //            success: function (result) {
+                //                alert("Data inserted");
+                //                //loadData();
+                //                //$('#myModal').modal('hide');
+                //            },
+                //            error: function (errormessage) {
+                //                alert(errormessage.responseText);
+                //            }
+                //        });
+
+                //    }
+                //    else {
+                //        return false;
+                //    }
+                //});
+        });
+        </script>
+
+
+
+    }
+
+</body>
+</html>

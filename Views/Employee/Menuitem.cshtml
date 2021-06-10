@@ -1,0 +1,228 @@
+﻿@model Hotelmanagementsystem.Models.Menuitem
+@*@{
+        Layout = null;
+    }*@
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    @*<meta name="viewport" content="width=device-width" />*@
+    <title>Menuitem</title>
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm" crossorigin="anonymous">
+    <link href="https://cdn.datatables.net/1.10.15/css/dataTables.bootstrap.min.css" rel="stylesheet" />
+    <link href="https://cdn.datatables.net/responsive/2.1.1/css/responsive.bootstrap.min.css" rel="stylesheet" />
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" />
+</head>
+<body>
+    <div>
+        <div class="card  mt-5 mb-3">
+            <div class="card-header text-white font-weight-bold bg-primary">Order food here</div>
+            <div class="card-body">
+                <div class="row mb-2" style="margin-left:0.25%">
+                    <div class="row col-6">
+                        <label>Customer Name</label> &nbsp;&nbsp;
+                        @Html.TextBoxFor(m => m.customername, new { @class = "form-control" })
+                    </div>
+                    <div class="row col-6">
+                        <label>Customer Mobile</label>&nbsp;&nbsp;
+                        @Html.TextBoxFor(m => m.customermob, new { @class = "form-control", maxlength = 10 })
+                    </div>
+                </div>
+                <div class="row" style="margin-left:0.25%">
+                    <div class="row col-6">
+                        <label>Breakfast</label>
+                        @Html.RadioButtonFor(m => m.bbreakfast, "Breakfast", new { Name = "Foodtype", @class = "m-2" })&nbsp;&nbsp;&nbsp;
+                        <label>Lunch</label>
+                        @Html.RadioButtonFor(m => m.blunch, "Lunch", new { Name = "Foodtype", @class = "m-2" })&nbsp;&nbsp;&nbsp;
+                        <label>Dinner</label>
+                        @Html.RadioButtonFor(m => m.bdinner, "Dinner", new { Name = "Foodtype", @class = "m-2" })&nbsp;&nbsp;&nbsp;
+                    </div>
+
+                    <div class="row col-6">
+                        <label>Select Food Item</label>
+                        <select class="form-control ml-3" id="Fooditem"> </select>
+                    </div>
+
+                </div>
+
+                <div class="row" style="margin-left:0.25%">
+                    <label>Amount to paid </label> &nbsp;&nbsp;&nbsp;
+                    @Html.TextBoxFor(m => m.amount, new { @class = "form-control", disabled = "disable" })
+                </div>
+                <div class="text-center">
+                    <button id="btnclick" class="btn btn-primary">Submit</button>
+                </div>
+
+            </div>
+        </div>
+
+        
+            <div class="col-10">
+                <h2>Food ordered by Customers</h2>
+                <table id="GetDetails" class="table table-striped table-bordered nowrap">
+                    <thead>
+                        <tr>
+                            <th>Customer Name</th>
+                            <th>Customer Mobile</th>
+                            <th>Food Type</th>
+                            <th>Food Ordered</th>
+                            <th>Amount Paid(Rs.)</th>                          
+                        </tr>
+                    </thead>
+                </table>
+            </div>
+       
+    </div>
+</body>
+</html>
+@section scripts
+{
+    <script src="https://cdn.datatables.net/1.10.15/js/jquery.dataTables.min.js"></script>
+    <script src="https://cdn.datatables.net/1.10.15/js/dataTables.bootstrap4.min.js "></script>
+    <script>
+        $("#btnclick").click(function () {
+            var res = validate();
+            if (res == false) {
+                return false;
+            }
+            var empObj = {
+                customername: $('#customername').val(),
+                customermob: $('#customermob').val(),
+                Foodtype: $('input[name="Foodtype"]:checked').val(),
+                food: $('#Fooditem').val(),
+                amount: $('#amount').val(),
+            };
+            $.ajax({
+                url: "/Employee/InsertFoodorderdetails",
+                data: JSON.stringify(empObj),
+                type: "POST",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    //alert("Data inserted");
+                    $("#customername").val('');
+                    $("#customermob").val('');
+                    $("#Fooditem").val('');
+                    $("#amount").val('');
+                },
+                error: function (errormessage) {
+                    $("#customername").val('');
+                    $("#customermob").val('');
+                    $("#Fooditem").val('');
+                    $("#amount").val('');
+                    $('input[type="radio"]').prop('checked', false)
+                    //alert(errormessage.responseText);
+                }
+            });
+        });
+
+        $("#Fooditem").change(function () {
+            //var foodobj = {
+            //    foodtype: $('input[name="Foodtype"]:checked').val(),
+            //    food: $(this).val()
+            //}
+            //var foodtype = $('input[name="Foodtype"]:checked').val();
+            var food = $(this).val();
+            //alert(foodtype + ' & ' + food);
+            debugger;
+            $.ajax({
+                url: "/Employee/Getfoodetails/",
+                type: "get",
+                data: { food },
+                dataType: "json",
+                success: function (result) {
+                    $("#amount").val(result[0].amount);
+                }
+            });
+
+        });
+
+        $(document).ready(function () {
+            $("#Fooditem").prop("disabled", true)
+
+            $('input[type=radio][name="Foodtype"]').change(function () {
+
+                var Foodtype = $(this).val();
+                debugger;
+                $.ajax({
+                    url: "/Employee/Getfoodetails/",
+                    type: "GET",
+                    data: { Foodtype },
+                    contentType: "application/json;",
+                    dataType: "json",
+                    success: function (result) {
+                        var items = "";
+                        $("#Fooditem").prop("disabled", false)
+                        items += "<option value='' disabled selected>Please Select Food</option>";
+                        $.each(result, function (i, item) {
+                            items += "<option value='" + item.availablefood + "'>" + (item.availablefood) + "</option>";
+                        });
+                        $("#Fooditem").html(items);
+                    },
+                    error: function (errormessage) {
+                        //alert(errormessage.responseText);
+                    }
+                });
+            })
+
+        });
+
+        function validate() {
+            var isValid = true;
+            if ($('#customername').val() == "") {
+                $('#customername').css('border-color', 'Red');
+                isValid = false;
+            }
+            else {
+                $('#customername').css('border-color', 'lightgrey');
+            }
+            if ($('#customermob').val().trim() == "") {
+                $('#customermob').css('border-color', 'Red');
+                isValid = false;
+            }
+            else {
+                $('#customermob').css('border-color', 'lightgrey');
+            }
+            if ($('#amount').val().trim() == "") {
+                $('#amount').css('border-color', 'Red');
+                isValid = false;
+            }
+            else {
+                $('#amount').css('border-color', 'lightgrey');
+            }
+
+            return isValid;
+        }
+    </script>
+
+    <script>
+            $(document).ready(function () {
+                debugger;
+                var table =  $("#GetDetails").DataTable( {
+                "ajax": {
+                    "url": '@Url.Action("GetDetails1", "Employee")',
+                    "type": 'get',
+                    "datatype":'json',
+                    },
+
+                "serverSide": false,
+                    "columns": [
+                        { "data": "customername", "Searchable": true },
+                        { "data": "customermob", "Searchable": true },
+                        { "data": "foodtype", "Searchable": true },
+                        { "data": "food", "Searchable": true },
+                        { "data": "amount", "Searchable": true },                      
+                ],
+                "columnDefs": [
+                    { "targets": 0, "class": "text-center" },
+                    { "targets": 1, "class": "text-center" },
+                    { "targets": 2, "class": "text-center" },
+                    { "targets": 3, "class": "text-center" },
+                    { "targets": 4, "class": "text-center" },                 
+                ],
+                });
+
+        });
+    </script>
+}

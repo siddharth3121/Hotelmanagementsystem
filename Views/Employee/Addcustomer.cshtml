@@ -1,0 +1,345 @@
+﻿@model Hotelmanagementsystem.Models.Adminmodel
+@{
+    Layout = "~/Views/Shared/_Layout.cshtml";
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>Registration</title>
+    <style>
+        input, select, textarea {
+            max-width: 100%;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h2>Customer Record</h2>
+        <button type="button" class="btn btn-primary" data-toggle="modal" data-target="#myModal" onclick="clearTextBox();">Add Customer</button><br /><br />
+        <table class="table table-bordered table-hover">
+            <thead>
+                <tr>
+                    <th>
+                        Name
+                    </th>
+                    <th>
+                        Gender
+                    </th>
+                    <th>
+                        Nationality
+                    </th>
+                    <th>
+                        Adhar Card
+                    </th>
+                    <th>
+                        Passport
+                    </th>
+                    <th>
+                        Mobilenumber
+                    </th>
+                    <th>
+                        Edit / Delete
+                    </th>
+                </tr>
+            </thead>
+            <tbody class="tbody">
+            </tbody>
+        </table>
+    </div>
+    <div class="modal fade" id="myModal" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+        <div class="modal-dialog">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h4 class="modal-title" id="myModalLabel">Add Customer</h4>
+                    <button type="button" class="close" data-dismiss="modal">×</button>
+                </div>
+                <div class="modal-body">
+                    <form>
+                        <div class="form-group">
+                            <label for="EmployeeId">ID</label>
+                            @Html.TextBoxFor(m => m.nid, new { @class = "form-control", disabled = "disabled" })
+                            @*<input type="text" class="form-control" id="EmployeeID" placeholder="Id" disabled="disabled" />*@
+                        </div>
+                        <div class="form-group">                   
+                            @Html.TextBoxFor(m => m.vusername, new { @class = "form-control", placeholder = "Please Enter Customer Name", id = "vusername" })                         
+                        </div>
+                        <div class="form-group">                         
+                            @Html.DropDownListFor(m => m.vgender, new List<SelectListItem>
+                               { new SelectListItem{Text="Male", Value="Male"},
+                               new SelectListItem{Text="Female", Value="Female"},
+                               }, "Please Select Gender", new { id = "vgender", @class = "form-control" })
+                        </div>
+                        <div class="form-group">                          
+                            @Html.DropDownListFor(m => m.vnationality, new List<SelectListItem>
+                               { new SelectListItem{Text="Indian", Value="Indian"},
+                               new SelectListItem{Text="Other", Value="Other"},
+                               }, "Please Select Nationality", new { id = "vnationality", @class = "form-control" })
+
+                            @*<input type="text" class="form-control" id="Age" placeholder="Age" />*@
+                        </div>
+                        <div id="showhidepassnum" class="form-group">                        
+                            @Html.TextBoxFor(m => m.vpassport, new { @class = "form-control", id = "vpassport", placeholder = "Please Enter Passport Number", maxlength = "10" })
+
+                            @*<input type="text" class="form-control" id="State" placeholder="State" />*@
+                        </div>
+                        <div class="form-group">        
+                         @Html.TextBoxFor(m => m.vmobnumber, new { @class = "form-control", id = "vmobnumber", placeholder = "Please Enter Mobile Number", maxlength = "10" })
+                        </div>
+                        <div class="form-group">
+                            @Html.TextBoxFor(m => m.vadharcard, new { @class = "form-control",id= "vadharcard", placeholder = "Please Enter Adhar Card", maxlength = "12" })
+                        </div>
+                    </form>
+                </div>
+                <div class="modal-footer">
+                    <button type="button" class="btn btn-primary" id="btnAdd" onclick="return Add();">Add</button>
+                    <button type="button" class="btn btn-primary" id="btnUpdate" style="display:none;" onclick="Update();">Update</button>
+                    <button type="button" id="close" class="btn btn-default" data-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+</body>
+</html>
+@section Scripts
+    {
+    <script>        
+        $('#showhidepassnum').hide();
+          $('select').on('change', function () {
+          var vusertype = $(this).val();
+              if (vusertype != "Other") {
+                  $('#showhidepassnum').hide();
+                  $('#vadharcard').show();
+                  $('#vpassport').val("");
+                 }
+              else {
+                  $('#vadharcard').hide();
+                  $('#showhidepassnum').show();
+                 }
+        });
+    </script>
+    @*<script src="~/Scripts/Users.js"></script>*@
+    <script>
+        //Load Data in Table when documents is ready
+        $(document).ready(function () {
+            loadData();
+        });
+
+        //Load Data function
+        function loadData() {
+            $.ajax({
+                url: "/Employee/List",
+                type: "GET",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    var html = '';
+                    $.each(result, function (key, item) {
+                        html += '<tr>';
+                        //html += '<td>' + item.nid + '</td>';
+                        html += '<td>' + item.vusername + '</td>';                        
+                        html += '<td>' + item.vgender + '</td>';
+                        html += '<td>' + item.vnationality + '</td>';
+                        html += '<td>' + item.vadharcard + '</td>';   
+                        html += '<td>' + item.vpassport + '</td>';   
+                        html += '<td>' + item.vmobnumber + '</td>';
+                        html += '<td><button style="color:red" href="#" onclick="return getbyID(' + item.nid + ')">Edit</button> | <button style="color:red" href="#" onclick="Delele(' + item.nid + ')">Delete</button></td>';
+                        html += '</tr>';
+                    });
+                    $('.tbody').html(html);
+                },
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });
+        }
+
+        //Add Data Function
+        function Add() {
+            var res = validate();
+            if (res == false) {
+                return false;
+            }
+            var empObj = {
+                vusername: $('#vusername').val(),
+                vgender: $('#vgender').val(),
+                vnationality: $('#vnationality').val(),
+                vpassport: $('#vpassport').val(),
+                vmobnumber: $('#vmobnumber').val(),
+                vadharcard: $('#vadharcard').val()
+            };
+            $.ajax({
+                url: "/Employee/Add",
+                data: JSON.stringify(empObj),
+                type: "POST",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    loadData();
+                    $('#myModal').modal('hide');
+                },
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });
+        }
+
+        //Function for getting the Data Based upon Employee ID
+        function getbyID(EmpID) {
+            $('#vusername').css('border-color', 'lightgrey');
+            $('#vusertype').css('border-color', 'lightgrey');
+            $('#vmobnumber').css('border-color', 'lightgrey');
+            $('#vpassword').css('border-color', 'lightgrey');
+            $.ajax({
+                url: "/Employee/getbyID/" + EmpID,
+                type: "GET",
+                contentType: "application/json;charset=UTF-8",
+                dataType: "json",
+                success: function (result) {
+                    $('#nid').val(result.nid);
+                    $('#vusername').val(result.vusername);
+                    if (result.vgender == "Male") {
+                        $('#vgender').val("Male");
+                    }
+                    else {
+                        $('#vgender').val("Female");
+                    }
+
+                    //$('#vgender').val(result.vgender);
+                    $('#vnationality').val(result.vnationality);
+                    $('#vpassport').val(result.vpassport);
+                    $('#vmobnumber').val(result.vmobnumber);
+                    $('#vadharcard').val(result.vadharcard);
+                    if (result.vnationality == "Other") {
+                        $('#vnationality').val("Other");
+                    }
+                    else {
+                        $('#vnationality').val("Indian");
+                    }
+                    $('#myModal').modal('show');
+                    $('#btnUpdate').show();
+                    $('#btnAdd').hide();
+                },
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });
+            return false;
+        }
+
+        //function for updating employee's record
+        function Update() {
+            var res = validate();
+            if (res == false) {
+                return false;
+            }
+            var empObj = {
+                nid: $('#nid').val(),
+                vusername: $('#vusername').val(),
+                vusertype: $('#vusertype').val(),
+                vmobnumber: $('#vmobnumber').val(),
+                vpassword: $('#vpassword').val(),
+            };
+            $.ajax({
+                url: "/Employee/Update",
+                data: JSON.stringify(empObj),
+                type: "POST",
+                contentType: "application/json;charset=utf-8",
+                dataType: "json",
+                success: function (result) {
+                    loadData();
+                    $('#myModal').modal('hide');
+                    $('#nid').val("");
+                    $('#vusername').val("");
+                    $('#vusertype').val("");
+                    $('#vmobnumber').val("");
+                    $('#vpassword').val("");
+                },
+                error: function (errormessage) {
+                    alert(errormessage.responseText);
+                }
+            });
+        }
+
+        //function for deleting employee's record
+        function Delele(ID) {
+            var ans = confirm("Are you sure you want to delete this Record?");
+            if (ans) {
+                $.ajax({
+                    url: "/Employee/Delete/" + ID,
+                    type: "POST",
+                    contentType: "application/json;charset=UTF-8",
+                    dataType: "json",
+                    success: function (result) {
+                        loadData();
+                    },
+                    error: function (errormessage) {
+                        alert(errormessage.responseText);
+                    }
+                });
+            }
+        }
+
+        //Function for clearing the textboxes
+        function clearTextBox() {
+            $('#nid').val("");
+            $('#vusername').val("");
+            $('#vgender').val("");
+            $('#vnationality').val("");
+            $('#vpassport').val("");
+            $('#vmobnumber').val("");
+            $('#vadharcard').val("");
+            $('#btnUpdate').hide();
+            $('#btnAdd').show();
+            $('#vusername').css('border-color', 'lightgrey');
+            $('#vgender').css('border-color', 'lightgrey');
+            $('#vnationality').css('border-color', 'lightgrey');
+            $('#vpassport').css('border-color', 'lightgrey');
+            $('#vmobnumber').css('border-color', 'lightgrey');
+            $('#vadharcard').css('border-color', 'lightgrey');            
+        }
+        //Valdidation using jquery
+        function validate() {
+            var isValid = true;
+            if ($('#vusername').val() == "") {
+                $('#vusername').css('border-color', 'Red');
+                isValid = false;
+            }
+            else {
+                $('#vusername').css('border-color', 'lightgrey');
+            }
+            if ($('#vgender').val().trim() == "") {
+                $('#vgender').css('border-color', 'Red');
+                isValid = false;
+            }
+            else {
+                $('#vgender').css('border-color', 'lightgrey');
+            }
+            if ($('#vnationality').val().trim() == "") {
+                $('#vnationality').css('border-color', 'Red');
+                isValid = false;
+            }
+            else {
+                $('#vnationality').css('border-color', 'lightgrey');
+            }
+            if ($('#vmobnumber').val().trim() == "") {
+                $('#vmobnumber').css('border-color', 'Red');
+                isValid = false;
+            }
+            else {
+                $('#vmobnumber').css('border-color', 'lightgrey');
+            }
+            //if ($('#vadharcard').val().trim() == "") {
+            //    $('#vadharcard').css('border-color', 'Red');
+            //    isValid = false;
+            //}
+            //else {
+            //    $('#vadharcard').css('border-color', 'lightgrey');
+            //}
+            return isValid;
+        }
+
+    </script>
+}
